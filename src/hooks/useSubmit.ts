@@ -175,7 +175,7 @@ const useSubmit = () => {
       }
   }
 
-  async function retrieveSimilarHistory(userId: string, sessionId: number, query: string): Promise<any[]> {
+  async function retrieveSimilarHistory(userId: string, sessionId: number, query: string): Promise<void> {
       const embedding = await convertTextToOpenAIEmbedding(query);
     
       let { data, error } = await supabase
