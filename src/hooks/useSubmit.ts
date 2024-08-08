@@ -175,13 +175,16 @@ const useSubmit = () => {
       }
   }
 
-  // async function retrieveSimilarHistory(userId: string, sessionId: number, query: string): Promise<any[]> {
-  //     const embedding = await convertTextToOpenAIEmbedding(query);
+  async function retrieveSimilarHistory(userId: string, sessionId: number, query: string): Promise<any[]> {
+      const embedding = await convertTextToOpenAIEmbedding(query);
     
-  //     const { data, error } = await supabase
-    
-  //   // Please add your codes to make this program work
-  // }
+      let { data, error } = await supabase
+      .rpc('search_history', {
+        embedding
+      })
+    if (error) console.error(error)
+    else console.log(data)
+  }
 
   const handleSubmit = async () => {
     if (token_number <= consumed_token) {
@@ -367,6 +370,8 @@ const useSubmit = () => {
         const messages_length = currChats[currentChatIndex].messages.length;
         const assistant_message = currChats[currentChatIndex].messages[messages_length - 1].content;
         const user_message = currChats[currentChatIndex].messages[messages_length - 2].content;
+
+        retrieveSimilarHistory(user.id, 0, user_message);
   
         await storeMessageWithEmbedding(user.id, 0, 'user', user_message);
         await storeMessageWithEmbedding(user.id, 0, 'assistant', assistant_message);
