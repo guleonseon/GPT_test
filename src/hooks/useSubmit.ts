@@ -295,7 +295,6 @@ const useSubmit = () => {
             );
             const updatedMessages = updatedChats[currentChatIndex].messages;
             updatedMessages[updatedMessages.length - 1].content += resultString;
-            console.log(resultString);
             setChats(updatedChats);
           }
         }
@@ -364,7 +363,12 @@ const useSubmit = () => {
       }
       // Wait for the state to update with the LLM's response
       //await new Promise(resolve => setTimeout(resolve, 0));
-      await storeMessageWithEmbedding(user.id, 0, 'assistant', "test content")
+      const messages_length = currChats[currentChatIndex].messages.length;
+      const assistant_message = currChats[currentChatIndex].messages[messages_length - 1].content;
+      const user_message = currChats[currentChatIndex].messages[messages_length - 2].content;
+
+      await storeMessageWithEmbedding(user.id, 0, 'user', user_message);
+      await storeMessageWithEmbedding(user.id, 0, 'assistant', assistant_message);
 
       // Calculate tokens for the last round including the LLM's response
       const newTokensForLastRound = await calculateTokensForLastRound();         
