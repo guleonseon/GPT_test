@@ -180,7 +180,7 @@ const useSubmit = () => {
     
       let { data, error } = await supabase
       .rpc('search_history', {
-        query_vector: JSON.stringify(embedding)})
+        query_vector: [embedding]})
     if (error) console.error(error)
     else console.log(data)
   }
