@@ -175,14 +175,20 @@ const useSubmit = () => {
       }
   }
 
-  async function retrieveSimilarHistory(userId: string, sessionId: number, query: string): Promise<void> {
+  async function retrieveSimilarHistory(userId: string, sessionId: number, query: string): Promise<String> {
       const query_vector = await convertTextToOpenAIEmbedding(query);
-    
-      let { data, error } = await supabase
+    let result = '';
+      let { data: documents, error } = await supabase
       .rpc('search_document_sections', {
         query_vector})
     if (error) console.error(error)
-    else console.log(data)
+    else {
+      //console.log(data)
+      result += documents.map((document: { section_content: string; similarity: number;}) => `${document.section_content.trim()}---\n`).join("")
+      console.log(result)
+    }
+
+    return result;
   }
 
   const handleSubmit = async () => {
