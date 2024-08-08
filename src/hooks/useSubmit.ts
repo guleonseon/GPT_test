@@ -185,7 +185,7 @@ const useSubmit = () => {
     else {
       //console.log(data)
       result += documents.map((document: { section_content: string; similarity: number;}) => `${document.section_content.trim()}---\n`).join("")
-      console.log(result)
+      //console.log(result)
     }
 
     return result;
@@ -243,17 +243,28 @@ const useSubmit = () => {
       const user_message = chats[currentChatIndex].messages[chats[currentChatIndex].messages.length - 1].content;
       await storeMessageWithEmbedding(user.id, 0, 'user', user_message);
 
-      console.log(chats[currentChatIndex].title);
-      if (chats[currentChatIndex].title == "ChritianGPT (Mormon)")
-      {
-        retrieveSimilarHistory(user.id, 0, user_message);
-      }
-
-      const messages = limitMessageTokens(
+      let messages = limitMessageTokens(
         chats[currentChatIndex].messages,
         chats[currentChatIndex].config.max_tokens,
         chats[currentChatIndex].config.model
       );
+
+      //console.log(chats[currentChatIndex].title);
+      if (chats[currentChatIndex].title == "ChritianGPT (Mormon)")
+      {
+        let document_context = await retrieveSimilarHistory(user.id, 0, user_message);
+        messages = [
+          {
+            role: "system",
+            content: `You are a representative that is very helpful when it comes to 
+            talking about Bibles, Only ever answer truthfully and be as helpful as you can!`
+          },
+          {
+            role: "user",
+            content: `Context sessions: "${document_context}" Question: "${user_message}" Answer as simple text:`
+          },
+        ]
+      }
       if (messages.length === 0) throw new Error('Message exceed max token!');
 
       // no api key (free)
