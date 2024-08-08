@@ -176,11 +176,14 @@ const useSubmit = () => {
   }
 
   async function retrieveSimilarHistory(userId: string, sessionId: number, query: string): Promise<void> {
-      const query_vector = await convertTextToOpenAIEmbedding(query);
+      const embedding = await convertTextToOpenAIEmbedding(query);
     
       let { data, error } = await supabase
       .rpc('search_history', {
-        query_vector: `[${query_vector}]`
+        query_vector: {
+          "object": "embedding",
+          "index": 0,
+          "embedding": embedding}
       })
     if (error) console.error(error)
     else console.log(data)
