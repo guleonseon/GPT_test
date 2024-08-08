@@ -135,6 +135,54 @@ const useSubmit = () => {
     return calculateNewTokensUsed(lastRoundMessages, model);
   };
 
+  /* RAG relevant implementation */
+  const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY; // Replace with your OpenAI API key
+  const OPENAI_ENDPOINT = 'https://api.openai.com/v1/engines/text-embedding-ada-002/embeddings'; // OpenAI's text-embedding endpoint
+  type EmbeddingResponse = number[];
+
+  async function convertTextToOpenAIEmbedding(text: string): Promise<EmbeddingResponse> {
+        const response = await fetch(OPENAI_ENDPOINT, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${OPENAI_API_KEY}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ input: text })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.data[0].embedding; 
+  }
+
+  async function storeMessageWithEmbedding(userId:string,sessionId: number, role: string, content: string): Promise<void> {
+      // Convert text to embedding
+      const embedding = await convertTextToOpenAIEmbedding(content);
+    
+      const { data, error } = await supabase
+        .from('conversation_history')
+        .insert([
+          { user_id: userId,session_id: sessionId, role: role, content: content, embedding: embedding }
+        ]);
+    
+      if (error) {
+        console.error("Error storing message with embedding:", error);
+      } else {
+        console.log("Message with embedding stored successfully:", data);
+      }
+  }
+
+  // async function retrieveSimilarHistory(userId: string, sessionId: number, query: string): Promise<any[]> {
+  //     const embedding = await convertTextToOpenAIEmbedding(query);
+    
+  //     const { data, error } = await supabase
+    
+  //   // Please add your codes to make this program work
+  // }
+
   const handleSubmit = async () => {
     if (token_number <= consumed_token) {
       console.log("Insufficient tokens to proceed.");
@@ -247,6 +295,7 @@ const useSubmit = () => {
             );
             const updatedMessages = updatedChats[currentChatIndex].messages;
             updatedMessages[updatedMessages.length - 1].content += resultString;
+            console.log(resultString);
             setChats(updatedChats);
           }
         }
@@ -314,7 +363,8 @@ const useSubmit = () => {
         }
       }
       // Wait for the state to update with the LLM's response
-      await new Promise(resolve => setTimeout(resolve, 0));
+      //await new Promise(resolve => setTimeout(resolve, 0));
+      await storeMessageWithEmbedding(user.id, 0, 'assistant', "test content")
 
       // Calculate tokens for the last round including the LLM's response
       const newTokensForLastRound = await calculateTokensForLastRound();         
