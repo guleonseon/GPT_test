@@ -179,9 +179,7 @@ const useSubmit = () => {
       const embedding = await convertTextToOpenAIEmbedding(query);
     
       let { data, error } = await supabase
-      .rpc('search_history', {
-        embedding
-      })
+      .rpc('search_history', embedding)
     if (error) console.error(error)
     else console.log(data)
   }
