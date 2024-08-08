@@ -179,7 +179,7 @@ const useSubmit = () => {
       const query_vector = await convertTextToOpenAIEmbedding(query);
     
       let { data, error } = await supabase
-      .rpc('search_history', {
+      .rpc('search_document_sections', {
         query_vector})
     if (error) console.error(error)
     else console.log(data)
@@ -233,6 +233,15 @@ const useSubmit = () => {
       let stream;
       if (chats[currentChatIndex].messages.length === 0)
         throw new Error('No messages submitted!');
+
+      const user_message = chats[currentChatIndex].messages[chats[currentChatIndex].messages.length - 1].content;
+      await storeMessageWithEmbedding(user.id, 0, 'user', user_message);
+
+      console.log(chats[currentChatIndex].title);
+      if (chats[currentChatIndex].title == "ChritianGPT (Mormon)")
+      {
+        retrieveSimilarHistory(user.id, 0, user_message);
+      }
 
       const messages = limitMessageTokens(
         chats[currentChatIndex].messages,
@@ -368,11 +377,6 @@ const useSubmit = () => {
       if (currChats) {
         const messages_length = currChats[currentChatIndex].messages.length;
         const assistant_message = currChats[currentChatIndex].messages[messages_length - 1].content;
-        const user_message = currChats[currentChatIndex].messages[messages_length - 2].content;
-
-        retrieveSimilarHistory(user.id, 0, user_message);
-  
-        await storeMessageWithEmbedding(user.id, 0, 'user', user_message);
         await storeMessageWithEmbedding(user.id, 0, 'assistant', assistant_message);
       }
 
